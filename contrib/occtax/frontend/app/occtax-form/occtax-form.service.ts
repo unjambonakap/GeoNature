@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { filter, tap, skip, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, combineLatest } from 'rxjs';
+import { filter, tap, skip, distinctUntilChanged, switchMap , map, catchError } from 'rxjs/operators';
 
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -93,6 +93,32 @@ export class OcctaxFormService {
     return this._http.get<any>(`${this.config.API_ENDPOINT}/occtax/defaultNomenclatures`, {
       params: params,
     });
+  }
+
+  getGlobalAndAdditionalFields(object_code: Array<string>) : Observable<any>{
+    const $_globalFieldsObservable = this.getAdditionnalFields(object_code)
+      .pipe(catchError(() => of([])));
+    /**
+     * Get dataset additional fields
+     */
+    const $_datasetSub = this.occtaxData.asObservable().pipe(
+      map((data) => data?.releve?.properties?.id_dataset),
+      filter((id_dataset) => id_dataset !== undefined && id_dataset !== null),
+      switchMap((id_dataset): Observable<any[]> => {
+        return this.getAdditionnalFields(object_code, id_dataset)
+          .pipe(catchError(() => of([])));
+      })
+    );
+    return combineLatest($_globalFieldsObservable, $_datasetSub)
+      .pipe(map(([global_additional_fields, dataset_additional_fields]) => [].concat(global_additional_fields, dataset_additional_fields) ));
+  }
+
+  updateAdditionalFieldsWithTaxref(fields: any[], taxref: any) {
+    fields.forEach((field) => {
+        field.regne = taxref?.regne;
+        field.group2Inpn = taxref?.group2_inpn;
+    });
+
   }
 
   getAdditionnalFields(object_code: Array<string>, idDataset?: string): Observable<any> {
