@@ -47,6 +47,8 @@ export class OcctaxFormOccurrenceComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.occurrenceForm = this.occtaxFormOccurrenceService.form;
     //gestion de l'affichage des preuves d'existence selon si Preuve = 'Oui' ou non.
+    this.occtaxFormOccurrenceService.taxref.subscribe(this.occtaxFormCountingsService.taxref);
+
     this._subscriptions.push(
       this.occurrenceForm
         .get('id_nomenclature_exist_proof')

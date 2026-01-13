@@ -8,7 +8,7 @@ import {
   ValidationErrors,
   AbstractControl,
 } from '@angular/forms';
-import { BehaviorSubject, Observable, of, forkJoin, combineLatest } from 'rxjs';
+import { BehaviorSubject, Observable, of, forkJoin, combineLatest, zip } from 'rxjs';
 import { map, filter, switchMap, tap, pairwise, retry, catchError } from 'rxjs/operators';
 import * as cloneDeep from 'lodash/cloneDeep';
 import { CommonService } from '@geonature_common/service/common.service';
@@ -90,39 +90,17 @@ export class OcctaxFormOccurrenceService {
       }),
       tap(
         (occurrence) => (this.occtaxFormCountingsService.countings = occurrence.cor_counting_occtax)
-      ),
-      //get additional global fields from occurrence, datasaet fields are taken by occtax-form.service > occtaxData observable
-      switchMap((occurrence): Observable<any[]> => {
-        //observable : get occurrence & countinf filed in same array, explode for separate into double array (occ array & couting array)
-        const $_globalFieldsObservable = this.occtaxFormService
-          .getAdditionnalFields(['OCCTAX_OCCURENCE'])
-          .pipe(catchError(() => of([])));
-
-        return forkJoin(of(occurrence), $_globalFieldsObservable);
-      })
+      )
     );
 
-    /**
-     * Get dataset additional fields
-     */
-    const $_datasetSub = this.occtaxFormService.occtaxData.asObservable().pipe(
-      map((data) => (((data || {}).releve || {}).properties || {}).id_dataset),
-      filter((id_dataset) => id_dataset !== undefined && id_dataset !== null),
-      switchMap((id_dataset): Observable<any[]> => {
-        return this.occtaxFormService
-          .getAdditionnalFields(['OCCTAX_OCCURENCE'], id_dataset)
-          .pipe(catchError(() => of([])));
-      })
-    );
+    const $_fieldsObservable= this.occtaxFormService.getGlobalAndAdditionalFields(['OCCTAX_OCCURENCE']);
 
     //observ global and dataset additional fields to set additionalFieldsForm only one time on each change (optimise memory usage)
-    combineLatest($_occurrenceSub, $_datasetSub)
-      .pipe(
-        map(([[occurrence, global_additional_fields], dataset_additional_fields]) => {
-          const additional_fields = [].concat(global_additional_fields, dataset_additional_fields);
-          return [occurrence, additional_fields];
-        }),
-        tap(([occurrence, additional_fields]) => {
+    this.taxref.subscribe(console.log);
+    combineLatest($_occurrenceSub, $_fieldsObservable, this.taxref).pipe(
+      filter(([occurrence, additional_fields, taxref]) => occurrence !== null),
+        map(([occurrence, additional_fields, taxref]) => {
+          this.occtaxFormService.updateAdditionalFieldsWithTaxref(additional_fields, taxref);
           //manage occ_additional_f
           additional_fields.forEach((field) => {
             //Formattage des dates
@@ -140,15 +118,12 @@ export class OcctaxFormOccurrenceService {
             if (occurrence.additional_fields[field.attribut_name] !== undefined) {
               field.value = occurrence.additional_fields[field.attribut_name];
             }
+
           });
 
-          return [occurrence, additional_fields];
+          this.additionalFieldsForm = additional_fields.slice();
+          return occurrence;
         }),
-        tap(([occurrence, additional_fields]) => {
-          this.additionalFieldsForm = additional_fields;
-        }),
-        //map for return occurrence data only
-        map(([occurrence, additional_fields]): any => occurrence)
       )
       .subscribe((occurrence: any) => this.form.patchValue(occurrence));
 
