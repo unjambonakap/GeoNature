@@ -75,21 +75,21 @@ if [[ "${CI}" == true ]] ; then
 fi
 
 # Frontend installation
-echo "Installation des paquets Npm"
-cd "${BASE_DIR}/frontend"
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use || exit 1
-if [[ "${MODE}" == "dev" ]]; then
-  npm ci || exit 1
-else
-  npm ci --omit=dev || exit 1
-fi
-
-cd "${BASE_DIR}/frontend"
-
-
-if [[ "${MODE}" != "dev" ]]; then
-  echo "Build du frontend..."
-  npm run build || exit 1
-fi
+#echo "Installation des paquets Npm"
+#cd "${BASE_DIR}/frontend"
+#export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+#[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+#nvm use || exit 1
+#if [[ "${MODE}" == "dev" ]]; then
+#  npm ci || exit 1
+#else
+#  npm ci --omit=dev || exit 1
+#fi
+#
+#cd "${BASE_DIR}/frontend"
+#
+#
+#if [[ "${MODE}" != "dev" ]]; then
+#  echo "Build du frontend..."
+#  npm run build || exit 1
+#fi
