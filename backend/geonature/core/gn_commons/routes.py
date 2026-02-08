@@ -270,10 +270,10 @@ def api_get_id_table_location(schema_dot_table):
 def list_places():
     places = db.session.scalars(
         db.select(TPlaces)
-        .filter_by(id_role=g.current_user.id_role)
+        .where(or_(TPlaces.id_digitizer==g.current_user.id_role, TPlaces.shared==True))
         .order_by(TPlaces.place_name.asc())
     ).all()
-    return jsonify([p.as_geofeature() for p in places])
+    return jsonify([dict(owned=p.id_digitizer==g.current_user.id_role, shared=p.shared, feature=p.as_geofeature()) for p in places])
 
 
 @routes.route("/place", methods=["POST"])  #  XXX best practices recommend plural nouns
@@ -283,10 +283,11 @@ def add_place():
     data = request.get_json()
     # FIXME check data validity!
     place_name = data["properties"]["place_name"]
+    place_shared = data["properties"]['place_shared']
     place_exists = (
         select(func.count("*"))
         .select_from(TPlaces)
-        .where(TPlaces.place_name == place_name, TPlaces.id_role == g.current_user.id_role)
+        .where(TPlaces.place_name == place_name, TPlaces.id_digitizer == g.current_user.id_role)
     )
 
     if db.session.execute(place_exists).scalar_one() > 0:
@@ -296,7 +297,7 @@ def add_place():
     two_dimension_geom = remove_third_dimension(new_shape)
     place_geom = from_shape(two_dimension_geom, srid=4326)
 
-    place = TPlaces(id_role=g.current_user.id_role, place_name=place_name, place_geom=place_geom)
+    place = TPlaces(id_digitizer=g.current_user.id_role, place_name=place_name, place_geom=place_geom, shared=place_shared)
     db.session.add(place)
     db.session.commit()
 
@@ -308,7 +309,7 @@ def add_place():
 @login_required
 def delete_place(id_place):
     place = db.get_or_404(TPlaces, id_place)
-    if g.current_user.id_role != place.id_role:
+    if g.current_user.id_role != place.id_digitizer:
         raise Forbidden("Vous n'êtes pas l'utilisateur propriétaire de ce lieu")
     db.session.delete(place)
     db.session.commit()

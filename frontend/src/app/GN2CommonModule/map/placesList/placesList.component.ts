@@ -6,7 +6,7 @@ import { CommonService } from '../../service/common.service';
 import * as L from 'leaflet';
 import { Subscription } from 'rxjs/Subscription';
 import { GeoJSON } from 'leaflet';
-import { DataFormService } from '@geonature_common/form/data-form.service';
+import { DataFormService, Place } from '@geonature_common/form/data-form.service';
 import { ConfigService } from '@geonature/services/config.service';
 
 /**
@@ -14,6 +14,8 @@ import { ConfigService } from '@geonature/services/config.service';
  *
  * Ce composant hérite du composant MarkerComponent: il dispose donc des mêmes inputs et outputs.
  */
+
+
 @Component({
   selector: 'pnx-placesList',
   templateUrl: 'placesList.component.html',
@@ -21,12 +23,12 @@ import { ConfigService } from '@geonature/services/config.service';
 export class PlacesListComponent extends MarkerComponent implements OnInit {
   @ViewChild('modalContent', { static: false }) public modalContent: any;
   public geojson: any;
-  public places: any[];
+  public places: Place[];
   public listPlacesSub: Subscription;
-  public selectedPlace: GeoJSON.Feature;
+  public selectedPlace: Place;
   public delPlaceSub: Subscription;
   public delPlaceRes: string;
-  public place: GeoJSON.Feature;
+  public place: Place;
 
   @Output() layerDrawed = new EventEmitter<GeoJSON>();
 
@@ -75,12 +77,12 @@ export class PlacesListComponent extends MarkerComponent implements OnInit {
     this.mapservice.removeAllLayers(this.map, this.mapService.leafletDrawFeatureGroup);
     this.mapservice.removeAllLayers(this.map, this.mapService.fileLayerFeatureGroup);
 
-    this.layerDrawed.emit(L.geoJSON(this.selectedPlace));
-    this.mapService.loadGeometryReleve(this.selectedPlace, true);
+    this.layerDrawed.emit(L.geoJSON(this.selectedPlace.feature));
+    this.mapService.loadGeometryReleve(this.selectedPlace.feature, true);
     this.modalService.dismissAll();
   }
 
-  onSelectPlace(place: GeoJSON.Feature) {
+  onSelectPlace(place: Place) {
     this.place = place;
   }
 
@@ -91,7 +93,7 @@ export class PlacesListComponent extends MarkerComponent implements OnInit {
     }
     this.selectedPlace = this.place;
     if (confirm('Êtes-vous sûr de vouloir supprimer ce lieu?')) {
-      this._dfs.deletePlace(this.selectedPlace.id).subscribe((res) => {
+      this._dfs.deletePlace(this.selectedPlace.feature.id).subscribe((res) => {
         this.fetchPlaces();
       });
     }

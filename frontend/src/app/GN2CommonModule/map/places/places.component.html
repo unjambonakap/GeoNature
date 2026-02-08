@@ -23,6 +23,12 @@
           [formControl]="placeForm"
           type="text"
         />
+        <label>Partager ce lieu:</label>
+        <input
+          class="form-control col-sm-12 col-md-12"
+          [formControl]="sharedPlaceForm"
+          type="checkbox"
+        />
       </div>
     </div>
   </div>
@@ -31,7 +37,7 @@
     <button
       type="button"
       class="btn btn-success"
-      (click)="addPlace(placeForm.value)"
+      (click)="addPlace(placeForm.value, sharedPlaceForm.value)"
     >
       Enregistrer
     </button>
