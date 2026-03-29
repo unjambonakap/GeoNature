@@ -33,6 +33,12 @@ export const FormatMapMime = new Map([
   ['shp', 'application/zip'],
 ]);
 
+export interface Place {
+  feature: GeoJSON.Feature;
+  shared: Boolean;
+  owned: Boolean;
+}
+
 @Injectable()
 export class DataFormService {
   private _blob: Blob;
@@ -600,8 +606,8 @@ export class DataFormService {
   }
 
   //liste des lieux
-  getPlaces() {
-    return this._http.get<any>(`${this.config.API_ENDPOINT}/gn_commons/places`);
+  getPlaces() : Observable<Place[]> {
+    return this._http.get<Place[]>(`${this.config.API_ENDPOINT}/gn_commons/places`);
   }
 
   //Ajouter lieu

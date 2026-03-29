@@ -21,6 +21,7 @@ import { ConfigService } from '@geonature/services/config.service';
 export class PlacesComponent extends MarkerComponent implements OnInit, OnDestroy {
   @ViewChild('modalContent', { static: false }) public modalContent: any;
   public placeForm = new UntypedFormControl();
+  public sharedPlaceForm = new UntypedFormControl();
   private geojsonSubscription$: Subscription;
   public geojson: GeoJSON.Feature;
   constructor(
@@ -64,15 +65,17 @@ export class PlacesComponent extends MarkerComponent implements OnInit, OnDestro
     };
   }
 
-  addPlace(placeName: String) {
+  addPlace(placeName: String, shared: Boolean) {
     if (!this.geojson.properties) {
       this.geojson.properties = {};
     }
     this.geojson.properties['place_name'] = placeName.toString();
+    this.geojson.properties['place_shared'] = shared;
     this._dfs.addPlace(this.geojson).subscribe((res) => {
       this.commonService.translateToaster('success', 'Lieux ajouté avec succès.');
       this.modalService.dismissAll();
       this.placeForm.reset();
+      this.sharedPlaceForm.reset();
     });
   }
 
