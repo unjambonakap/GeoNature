@@ -28,6 +28,7 @@ from geonature.core.gn_permissions.models import (
 )
 from geonature.core.gn_permissions.tools import get_permissions
 from geonature.core.gn_commons.models.base import TModules
+from geonature.core.gn_commons.admin import TaxrefAjaxModelLoader
 
 from pypnusershub.db.models import User
 
@@ -450,29 +451,6 @@ class AreaAjaxModelLoader(QueryAjaxModelLoader):
 
         return query.offset(offset).limit(limit).all()
 
-
-class TaxrefAjaxModelLoader(QueryAjaxModelLoader):
-    def format(self, taxref):
-        if not hasattr(taxref, "search_name"):
-            label = db.session.scalar(
-                sa.select(VMTaxrefListForautocomplete.search_name).filter_by(cd_nom=taxref.cd_nom)
-            )
-        else:
-            label = taxref.search_name
-        return (taxref.cd_nom, label.replace("<i>", "").replace("</i>", ""))
-
-    def get_query(self):
-        return db.session.query(
-            Taxref.cd_nom,
-            VMTaxrefListForautocomplete.search_name,
-        ).join(
-            VMTaxrefListForautocomplete,
-            VMTaxrefListForautocomplete.cd_nom == Taxref.cd_nom,
-        )
-
-    def get_one(self, pk):
-        with self.session.no_autoflush:
-            return self.session.get(self.model, pk)
 
 
 ### ModelViews

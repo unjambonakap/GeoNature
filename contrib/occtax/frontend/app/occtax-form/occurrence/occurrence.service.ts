@@ -125,7 +125,6 @@ export class OcctaxFormOccurrenceService {
               additional_fields,
               taxref,
             );
-          console.log(additional_fields);
           //manage occ_additional_f
           additional_fields.forEach((field) => {
             //Formattage des dates

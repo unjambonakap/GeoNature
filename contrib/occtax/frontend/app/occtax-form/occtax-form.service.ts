@@ -115,8 +115,12 @@ export class OcctaxFormService {
       .pipe(map(([global_additional_fields, dataset_additional_fields]) => [].concat(global_additional_fields, dataset_additional_fields) ));
   }
 
-  getAdditionalFieldsWithTaxref(fields: any[], taxref?: any) : any[] {
-    return fields.map((field) => {
+  getAdditionalFieldsWithTaxref(fields: any[], taxref?: TaxonWithParents) : any[] {
+    var allowed_cdnom =  new Set(taxref == null ? [] : taxref.parents.map((parent) => parent.cd_ref).concat([taxref.cd_nom]));
+    
+    return fields.filter((field) => {
+      return field.applicable_taxrefs.length == 0 || field.applicable_taxrefs.some((x) => allowed_cdnom.has(x.cd_nom));
+    }).map((field) => {
         return {...field, regne: taxref?.regne, group2Inpn: taxref?.group2_inpn};
     });
   }

@@ -48,6 +48,10 @@ export interface Taxon {
   attributs?: any[];
 }
 
+export type TaxonWithParents = Taxon & {
+  parents: TaxonParents;
+};
+
 /**
  * Ce composant permet de créer un "input" de type "typeahead" pour rechercher des taxons à partir d'une liste définit dans schéma taxonomie. Table ``taxonomie.bib_listes`` et ``taxonomie.cor_nom_listes``.
  *

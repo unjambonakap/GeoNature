@@ -188,6 +188,10 @@ export class DataFormService {
     });
   }
 
+  getTaxonParents(taxon: Taxon): Observable<TaxonParents> {
+    return this._http.get<TaxonParents>(`${this.getTaxhubAPI()}/taxref/${taxon.cd_nom}/parents`);
+  }
+
   fetchStatusSymbology() {
     return this._http.get<any>(`${this.getTaxhubAPI()}/bdc_statuts/status_symbologies`);
   }
@@ -664,6 +668,7 @@ export class DataFormService {
               objects: data.objects,
               modules: data.modules,
               datasets: data.datasets,
+              applicable_taxrefs: data.applicable_taxrefs,
               key_value: data.type_widget.widget_name === 'nomenclature' ? 'label_default' : null,
               ...data.additional_attributes,
             };

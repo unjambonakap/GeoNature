@@ -11,11 +11,39 @@ from geonature.core.gn_commons.models import TModules
 from geonature.core.gn_permissions.models import PermObject
 from geonature.core.gn_commons.schemas import TAdditionalFieldsSchema
 from geonature.utils.env import DB
+from apptax.taxonomie.models import Taxref, VMTaxrefListForautocomplete
+from geonature.utils.env import db
+from flask_admin.contrib.sqla.ajax import QueryAjaxModelLoader
 
 
 from marshmallow import ValidationError
 
 log = logging.getLogger()
+
+class TaxrefAjaxModelLoader(QueryAjaxModelLoader):
+    def format(self, taxref):
+        if taxref is None: return None
+        if not hasattr(taxref, "search_name"):
+            label = db.session.scalar(
+                select(VMTaxrefListForautocomplete.search_name).filter_by(cd_nom=taxref.cd_nom)
+            )
+        else:
+            label = taxref.search_name
+        return (taxref.cd_nom, label.replace("<i>", "").replace("</i>", ""))
+
+    def get_query(self):
+        return db.session.query(
+            Taxref.cd_nom,
+            VMTaxrefListForautocomplete.search_name,
+        ).join(
+            VMTaxrefListForautocomplete,
+            VMTaxrefListForautocomplete.cd_nom == Taxref.cd_nom,
+        )
+
+    def get_one(self, pk):
+        with self.session.no_autoflush:
+            return self.session.get(self.model, pk)
+
 
 
 class TAdditionalFieldsForm(BaseForm):
@@ -56,6 +84,7 @@ class BibFieldAdmin(CruvedProtectedMixin, ModelView):
         "bib_nomenclature_type",
         "id_list",
         "additional_attributes",
+        "applicable_taxrefs",
     )
     column_exclude_list = (
         "field_values",
@@ -80,6 +109,7 @@ class BibFieldAdmin(CruvedProtectedMixin, ModelView):
         "default_value": {"label": "Valeur par défaut"},
         "field_order": {"label": "Ordre"},
         "additional_attributes": {"label": "Attribut additionnels"},
+        "applicable_taxrefs": {"label": "Restriction du champs à une sous-arborescence Taxref"},
         "modules": {
             "query_factory": lambda: DB.session.scalars(
                 select(TModules).where(
@@ -99,6 +129,24 @@ class BibFieldAdmin(CruvedProtectedMixin, ModelView):
             )
         },
     }
+    form_ajax_refs = {
+        "applicable_taxrefs": TaxrefAjaxModelLoader(
+
+            name="applicable_taxrefs",
+            session=db.session,
+            model=Taxref,
+            fields=(
+                Taxref.cd_nom,
+                Taxref.nom_vern,
+                Taxref.nom_valide,
+                Taxref.nom_complet,
+            ),
+            page_size=25,
+            placeholder="Sélectionnez un taxon",
+            minimum_input_length=1,
+        ),
+    }
+
     column_descriptions = {
         "bib_nomenclature_type": "Si Type widget = Nomenclature",
         "field_label": "Label du champ en interface",

@@ -346,3 +346,10 @@ cor_field_dataset = DB.Table(
     DB.Column("id_dataset", DB.Integer, DB.ForeignKey("gn_meta.t_datasets.id_dataset")),
     schema="gn_commons",
 )
+
+cor_field_taxref = DB.Table(
+    "cor_field_taxref",
+    DB.Column("id_field", DB.Integer, DB.ForeignKey("gn_commons.t_additional_fields.id_field")),
+    DB.Column("cd_nom", DB.Integer, DB.ForeignKey("taxonomie.taxref.cd_nom")),
+    schema="gn_commons",
+)

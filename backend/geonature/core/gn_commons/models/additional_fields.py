@@ -9,9 +9,10 @@ from utils_flask_sqla.serializers import serializable
 
 from geonature.utils.env import DB
 
-from .base import cor_field_module, cor_field_object, cor_field_dataset
+from .base import cor_field_module, cor_field_object, cor_field_dataset, cor_field_taxref
 from geonature.core.gn_meta.models import TDatasets
 from geonature.core.gn_permissions.models import PermObject
+from apptax.taxonomie.models import Taxref
 
 
 @serializable
@@ -51,6 +52,7 @@ class TAdditionalFields(DB.Model):
     datasets = DB.relationship(
         TDatasets, secondary=cor_field_dataset, back_populates="additional_fields"
     )
+    applicable_taxrefs = DB.relationship(Taxref, secondary=cor_field_taxref)
 
     def __str__(self):
         return self.field_label

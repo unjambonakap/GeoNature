@@ -7,6 +7,7 @@ from pypnnomenclature.schemas import NomenclatureSchema, BibNomenclaturesTypesSc
 
 from pypnusershub.schemas import UserSchema
 from geonature.utils.env import MA
+from apptax.taxonomie.schemas import TaxrefSchema
 from geonature.core.gn_commons.models import (
     TModules,
     TMedias,
@@ -107,6 +108,7 @@ class TAdditionalFieldsSchema(SmartRelationshipsMixin, MA.SQLAlchemyAutoSchema):
     type_widget = fields.Nested(BibWidgetSchema, dump_only=True)
     datasets = fields.Nested("DatasetSchema", many=True, dump_only=True)
     bib_nomenclature_type = fields.Nested(BibNomenclaturesTypesSchema, dump_only=True)
+    applicable_taxrefs = fields.Nested(TaxrefSchema, many=True, dump_only=True)
 
     def load(self, data, *, many=None, **kwargs):
 

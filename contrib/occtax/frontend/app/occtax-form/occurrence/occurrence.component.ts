@@ -26,6 +26,7 @@ import { ConfigService } from "@geonature/services/config.service";
 import { ViewChild } from "@angular/core";
 import { OcctaxFormCountingComponent } from "../counting/counting.component";
 import { AdvancedSectionState } from "@geonature_common/form/advanced-section/advanced-section.component";
+import { DataFormService } from "@geonature_common/form/data-form.service";
 import { TaxonWithParents } from "@geonature_common/form/taxonomy/taxonomy.component";
 
 @Component({
@@ -54,6 +55,7 @@ export class OcctaxFormOccurrenceComponent implements OnInit, OnDestroy {
     public fs: OcctaxFormService,
     private occtaxFormCountingsService: OcctaxFormCountingsService,
     public occtaxFormOccurrenceService: OcctaxFormOccurrenceService,
+    private dataFormService: DataFormService,
     private _coreFormService: FormService,
     private _occtaxTaxaListService: OcctaxTaxaListService,
     public dialog: MatDialog,
@@ -128,6 +130,15 @@ export class OcctaxFormOccurrenceComponent implements OnInit, OnDestroy {
         .pipe(
           tap(() => this.occtaxFormOccurrenceService.taxref.next(null)),
           filter((taxon) => taxon !== null && taxon.cd_nom !== undefined),
+          switchMap((taxon) => {
+            return this.dataFormService
+              .getTaxonParents(taxon)
+              .pipe(
+                map((parents) => {
+                  return { ...taxon, parents: parents["parents"] };
+                }),
+              );
+          }),
           tap((taxon) => this.occtaxFormOccurrenceService.taxref.next(taxon)),
           map((taxon) => {
             // mark the occform as dirty

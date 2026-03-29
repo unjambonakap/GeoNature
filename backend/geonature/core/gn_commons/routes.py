@@ -192,7 +192,7 @@ def _get_additional_fields(id_dataset=None, module_code=None, object_code=None):
             query = query.where(TAdditionalFields.objects.any(code_object=object_code))
 
     schema = TAdditionalFieldsSchema(
-        only=["bib_nomenclature_type", "modules", "objects", "datasets", "type_widget"], many=True
+        only=["bib_nomenclature_type", "modules", "objects", "datasets", "type_widget", "applicable_taxrefs"], many=True
     )
     return schema.dump(db.session.scalars(query).all())
 
